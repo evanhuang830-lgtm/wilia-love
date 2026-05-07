@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Une question pour toi...</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Dancing Script', cursive;
+  }
+
+  #canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+  .card {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+    animation: floatin 1s ease both;
+  }
+
+  @keyframes floatin {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .heart-svg {
+    animation: heartbeat 1.3s ease-in-out infinite;
+    display: block;
+    margin: 0 auto;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.2); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    56% { transform: scale(1); }
+  }
+
+  .question {
+    font-size: clamp(32px, 7vw, 72px);
+    color: #e0255a;
+    line-height: 1.2;
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { color: #e0255a; }
+    50% { color: #ff4d7a; }
+  }
+
+  .subtitle {
+    font-size: clamp(14px, 2.5vw, 22px);
+    color: #c0607a;
+    letter-spacing: 2px;
+    margin-top: -20px;
+    opacity: 0.8;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 700;
+    padding: 14px 48px;
+    border-radius: 60px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px;
+  }
+  .btn:active { transform: scale(0.95); }
+
+  .btn-oui {
+    background: #e0255a;
+    color: #fff;
+    box-shadow: 0 4px 24px rgba(224,37,90,0.25);
+  }
+  .btn-oui:hover {
+    background: #ff4d7a;
+    transform: scale(1.07);
+    box-shadow: 0 8px 32px rgba(224,37,90,0.35);
+  }
+
+  .btn-non {
+    background: #fff;
+    color: #e0255a;
+    border: 2px solid #e0255a;
+    box-shadow: 0 4px 16px rgba(224,37,90,0.1);
+  }
+  .btn-non:hover {
+    background: #fff0f4;
+    transform: scale(1.07);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="card">
+  <svg class="heart-svg" width="90" height="82" viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="hg" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#ff6090"/>
+        <stop offset="100%" stop-color="#c0003a"/>
+      </radialGradient>
+    </defs>
+    <path d="M55 90 C55 90 5 55 5 28 C5 12 17 2 30 2 C40 2 50 9 55 18 C60 9 70 2 80 2 C93 2 105 12 105 28 C105 55 55 90 55 90Z" fill="url(#hg)" stroke="#e0255a" stroke-width="1.5"/>
+  </svg>
+
+  <div>
+    <div class="question">Est-ce que tu m'aimes ?</div>
+    <div class="subtitle">Wilia, réponds honnêtement...</div>
+  </div>
+
+  <div class="buttons">
+    <button class="btn btn-oui" onclick="window.location.href='love.html'">Oui</button>
+    <button class="btn btn-non" onclick="window.location.href='no.html'">Non</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const hearts = [];
+function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+function drawHeart(ctx, cx, cy, size, alpha, color) {
+  const s = size / 110;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(cx - 55 * s, cy - 50 * s);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  ctx.moveTo(55, 90);
+  ctx.bezierCurveTo(55, 90, 5, 55, 5, 28);
+  ctx.bezierCurveTo(5, 12, 17, 2, 30, 2);
+  ctx.bezierCurveTo(40, 2, 50, 9, 55, 18);
+  ctx.bezierCurveTo(60, 9, 70, 2, 80, 2);
+  ctx.bezierCurveTo(93, 2, 105, 12, 105, 28);
+  ctx.bezierCurveTo(105, 55, 55, 90, 55, 90);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+
+const colors = ['#ff6090','#ff4d7a','#e0255a','#ffb3cc','#ff8fb0','#ffd6e5','#c0003a','#ffcce0'];
+
+function spawnHeart() {
+  const size = randBetween(10, 32);
+  hearts.push({
+    x: randBetween(0, canvas.width),
+    y: canvas.height + size,
+    size,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: randBetween(-0.8, 0.8),
+    vy: randBetween(-1, -2.2),
+    alpha: randBetween(0.3, 0.6),
+    wobble: randBetween(0, Math.PI * 2),
+    wobbleSpeed: randBetween(0.02, 0.05),
+    wobbleAmp: randBetween(0.5, 1.5),
+    fade: randBetween(0.003, 0.005),
+  });
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const h = hearts[i];
+    h.y += h.vy;
+    h.x += h.vx + Math.sin(h.wobble) * h.wobbleAmp;
+    h.wobble += h.wobbleSpeed;
+    h.alpha -= h.fade;
+    if (h.alpha <= 0 || h.y < -h.size * 2) { hearts.splice(i, 1); continue; }
+    drawHeart(ctx, h.x, h.y, h.size, h.alpha, h.color);
+  }
+  if (Math.random() < 0.18) spawnHeart();
+  requestAnimationFrame(draw);
+}
+draw();
+for (let k = 0; k < 15; k++) setTimeout(spawnHeart, k * 100);
+</script>
+</body>
+</html>

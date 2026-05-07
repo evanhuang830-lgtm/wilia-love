@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vraiment...?</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    font-family: 'Dancing Script', cursive;
+  }
+
+  .text-top {
+    font-size: clamp(24px, 5vw, 52px);
+    color: #ff4444;
+    text-align: center;
+    animation: shake 0.5s ease-in-out infinite;
+    z-index: 10;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px) rotate(-1deg); }
+    75% { transform: translateX(6px) rotate(1deg); }
+  }
+
+  .dragon-wrap {
+    position: relative;
+    z-index: 10;
+  }
+
+  canvas#dragon {
+    display: block;
+  }
+
+  .text-bottom {
+    font-size: clamp(16px, 3vw, 28px);
+    color: #888;
+    text-align: center;
+    z-index: 10;
+    letter-spacing: 2px;
+  }
+
+  .btn-retry {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(18px, 3vw, 28px);
+    font-weight: 700;
+    padding: 12px 36px;
+    border-radius: 60px;
+    border: 2px solid #e0255a;
+    background: transparent;
+    color: #e0255a;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .btn-retry:hover {
+    background: #e0255a;
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  /* Disco floor particles */
+  #bgcanvas { position: fixed; inset: 0; z-index: 0; }
+</style>
+</head>
+<body>
+
+<canvas id="bgcanvas"></canvas>
+
+<div class="text-top">Non ?! Vraiment ?!</div>
+
+<div class="dragon-wrap">
+  <canvas id="dragon" width="280" height="280"></canvas>
+</div>
+
+<div class="text-bottom">le dragon est aussi choqué que moi...</div>
+
+<button class="btn-retry" onclick="window.location.href='index.html'">Retenter ta chance</button>
+
+<script>
+/* ---- Background disco dots ---- */
+const bg = document.getElementById('bgcanvas');
+const bgc = bg.getContext('2d');
+function resizeBg() { bg.width = window.innerWidth; bg.height = window.innerHeight; }
+resizeBg();
+window.addEventListener('resize', resizeBg);
+const dots = Array.from({length: 60}, () => ({
+  x: Math.random() * bg.width, y: Math.random() * bg.height,
+  r: Math.random() * 3 + 1,
+  hue: Math.random() * 360,
+  speed: Math.random() * 0.5 + 0.2,
+}));
+function drawBg() {
+  bgc.clearRect(0, 0, bg.width, bg.height);
+  dots.forEach(d => {
+    d.hue = (d.hue + d.speed) % 360;
+    d.y -= 0.3;
+    if (d.y < 0) { d.y = bg.height; d.x = Math.random() * bg.width; }
+    bgc.beginPath();
+    bgc.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+    bgc.fillStyle = `hsla(${d.hue}, 100%, 60%, 0.5)`;
+    bgc.fill();
+  });
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+/* ---- Dancing Dragon on Canvas ---- */
+const dc = document.getElementById('dragon');
+const dctx = dc.getContext('2d');
+let t = 0;
+
+function drawDragon(t) {
+  dctx.clearRect(0, 0, 280, 280);
+
+  const bounce = Math.sin(t * 3) * 10;
+  const sway = Math.sin(t * 2.5) * 12;
+  const armL = Math.sin(t * 3 + 0.5) * 35;
+  const armR = -Math.sin(t * 3) * 35;
+  const legL = Math.sin(t * 4) * 20;
+  const legR = -Math.sin(t * 4) * 20;
+  const tailWag = Math.sin(t * 3) * 18;
+
+  dctx.save();
+  dctx.translate(140, 140 + bounce);
+
+  // Shadow
+  dctx.save();
+  dctx.scale(1, 0.3);
+  dctx.beginPath();
+  dctx.ellipse(0, 110, 30, 10, 0, 0, Math.PI * 2);
+  dctx.fillStyle = 'rgba(0,0,0,0.3)';
+  dctx.fill();
+  dctx.restore();
+
+  // Tail
+  dctx.save();
+  dctx.translate(sway * 0.3, 40);
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.bezierCurveTo(-20 + tailWag, 20, -40 + tailWag * 1.5, 50, -50 + tailWag * 2, 70);
+  dctx.lineWidth = 14;
+  dctx.strokeStyle = '#2d7a2d';
+  dctx.lineCap = 'round';
+  dctx.stroke();
+  // tail tip
+  dctx.beginPath();
+  dctx.moveTo(-50 + tailWag * 2, 70);
+  dctx.lineTo(-60 + tailWag * 2.2, 80);
+  dctx.lineWidth = 7;
+  dctx.strokeStyle = '#ff6600';
+  dctx.stroke();
+  dctx.restore();
+
+  // Left leg
+  dctx.save();
+  dctx.translate(-16 + sway * 0.2, 55);
+  dctx.rotate((legL * Math.PI) / 180);
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.lineTo(-8, 32);
+  dctx.lineWidth = 10;
+  dctx.strokeStyle = '#2d7a2d';
+  dctx.lineCap = 'round';
+  dctx.stroke();
+  // foot
+  dctx.beginPath();
+  dctx.moveTo(-8, 32);
+  dctx.lineTo(-18, 38);
+  dctx.lineTo(-6, 38);
+  dctx.lineWidth = 6;
+  dctx.strokeStyle = '#1a5c1a';
+  dctx.stroke();
+  dctx.restore();
+
+  // Right leg
+  dctx.save();
+  dctx.translate(16 + sway * 0.2, 55);
+  dctx.rotate((legR * Math.PI) / 180);
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.lineTo(8, 32);
+  dctx.lineWidth = 10;
+  dctx.strokeStyle = '#2d7a2d';
+  dctx.lineCap = 'round';
+  dctx.stroke();
+  // foot
+  dctx.beginPath();
+  dctx.moveTo(8, 32);
+  dctx.lineTo(18, 38);
+  dctx.lineTo(6, 38);
+  dctx.lineWidth = 6;
+  dctx.strokeStyle = '#1a5c1a';
+  dctx.stroke();
+  dctx.restore();
+
+  // Body
+  dctx.save();
+  dctx.translate(sway * 0.2, 0);
+  dctx.beginPath();
+  dctx.ellipse(0, 30, 28, 38, 0, 0, Math.PI * 2);
+  dctx.fillStyle = '#3aaa3a';
+  dctx.fill();
+  dctx.strokeStyle = '#2d7a2d';
+  dctx.lineWidth = 2;
+  dctx.stroke();
+  // belly
+  dctx.beginPath();
+  dctx.ellipse(0, 34, 16, 24, 0, 0, Math.PI * 2);
+  dctx.fillStyle = '#c8e6a0';
+  dctx.fill();
+  dctx.restore();
+
+  // Left arm
+  dctx.save();
+  dctx.translate(-26 + sway * 0.2, 10);
+  dctx.rotate((armL * Math.PI) / 180);
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.lineTo(-22, 20);
+  dctx.lineWidth = 9;
+  dctx.strokeStyle = '#3aaa3a';
+  dctx.lineCap = 'round';
+  dctx.stroke();
+  // claws
+  [-5, 0, 5].forEach(dx => {
+    dctx.beginPath();
+    dctx.moveTo(-22 + dx * 0.5, 20);
+    dctx.lineTo(-26 + dx, 28);
+    dctx.lineWidth = 3;
+    dctx.strokeStyle = '#1a5c1a';
+    dctx.stroke();
+  });
+  dctx.restore();
+
+  // Right arm
+  dctx.save();
+  dctx.translate(26 + sway * 0.2, 10);
+  dctx.rotate((armR * Math.PI) / 180);
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.lineTo(22, 20);
+  dctx.lineWidth = 9;
+  dctx.strokeStyle = '#3aaa3a';
+  dctx.lineCap = 'round';
+  dctx.stroke();
+  [-5, 0, 5].forEach(dx => {
+    dctx.beginPath();
+    dctx.moveTo(22 + dx * 0.5, 20);
+    dctx.lineTo(26 + dx, 28);
+    dctx.lineWidth = 3;
+    dctx.strokeStyle = '#1a5c1a';
+    dctx.stroke();
+  });
+  dctx.restore();
+
+  // Neck
+  dctx.save();
+  dctx.translate(sway * 0.3, -10);
+  dctx.beginPath();
+  dctx.moveTo(-10, 0);
+  dctx.bezierCurveTo(-12, -20, 12, -20, 10, 0);
+  dctx.fillStyle = '#3aaa3a';
+  dctx.fill();
+  dctx.restore();
+
+  // Head
+  const headSway = sway * 0.5;
+  dctx.save();
+  dctx.translate(headSway, -52);
+  // head base
+  dctx.beginPath();
+  dctx.ellipse(0, 0, 26, 22, 0, 0, Math.PI * 2);
+  dctx.fillStyle = '#3aaa3a';
+  dctx.fill();
+  dctx.strokeStyle = '#2d7a2d';
+  dctx.lineWidth = 2;
+  dctx.stroke();
+
+  // Snout
+  dctx.beginPath();
+  dctx.ellipse(0, 14, 14, 10, 0, 0, Math.PI * 2);
+  dctx.fillStyle = '#4cc44c';
+  dctx.fill();
+
+  // Nostril
+  dctx.beginPath(); dctx.arc(-4, 14, 2, 0, Math.PI * 2);
+  dctx.fillStyle = '#1a5c1a'; dctx.fill();
+  dctx.beginPath(); dctx.arc(4, 14, 2, 0, Math.PI * 2);
+  dctx.fill();
+
+  // Eyes (shocked / wide)
+  [-9, 9].forEach(ex => {
+    // White
+    dctx.beginPath();
+    dctx.ellipse(ex, -6, 7, 8, 0, 0, Math.PI * 2);
+    dctx.fillStyle = '#fff';
+    dctx.fill();
+    dctx.strokeStyle = '#1a5c1a';
+    dctx.lineWidth = 1.5;
+    dctx.stroke();
+    // Pupil (spinning from shock)
+    const pupilAngle = t * 4;
+    const px = ex + Math.cos(pupilAngle) * 2;
+    const py = -6 + Math.sin(pupilAngle) * 2;
+    dctx.beginPath();
+    dctx.arc(px, py, 3.5, 0, Math.PI * 2);
+    dctx.fillStyle = '#111';
+    dctx.fill();
+    // shine
+    dctx.beginPath();
+    dctx.arc(px + 1, py - 1, 1, 0, Math.PI * 2);
+    dctx.fillStyle = '#fff';
+    dctx.fill();
+  });
+
+  // Shocked open mouth
+  dctx.beginPath();
+  dctx.ellipse(0, 18, 8, 5, 0, 0, Math.PI * 2);
+  dctx.fillStyle = '#cc2200';
+  dctx.fill();
+
+  // Horns
+  [[-12, -18], [12, -18]].forEach(([hx, hy]) => {
+    dctx.beginPath();
+    dctx.moveTo(hx, hy);
+    dctx.lineTo(hx - (hx < 0 ? 6 : -6), hy - 16);
+    dctx.lineWidth = 5;
+    dctx.strokeStyle = '#ff6600';
+    dctx.lineCap = 'round';
+    dctx.stroke();
+  });
+
+  // Wings suggestion (little bumps on sides of head)
+  dctx.restore();
+
+  // Sweat drops (shock)
+  const sweatT = (t * 2) % 1;
+  dctx.save();
+  dctx.translate(headSway + 28, -65 + sweatT * 20);
+  dctx.globalAlpha = 1 - sweatT;
+  dctx.beginPath();
+  dctx.moveTo(0, 0);
+  dctx.bezierCurveTo(4, -6, 8, -4, 6, 2);
+  dctx.bezierCurveTo(4, 6, -4, 6, -4, 2);
+  dctx.bezierCurveTo(-6, -4, 0, -6, 0, 0);
+  dctx.fillStyle = '#44aaff';
+  dctx.fill();
+  dctx.restore();
+
+  // Fire breath
+  const firePhase = (Math.sin(t * 5) + 1) / 2;
+  dctx.save();
+  dctx.translate(headSway, -38);
+  for (let f = 0; f < 5; f++) {
+    const fOff = f * 0.3;
+    const fSize = (8 + f * 4) * (0.5 + firePhase * 0.5);
+    const fY = -(10 + f * 10) * firePhase;
+    dctx.globalAlpha = (1 - f * 0.18) * firePhase;
+    dctx.beginPath();
+    dctx.ellipse(Math.sin(t * 8 + fOff) * 4, fY, fSize * 0.6, fSize, 0, 0, Math.PI * 2);
+    dctx.fillStyle = f < 2 ? '#ff2200' : f < 4 ? '#ff8800' : '#ffdd00';
+    dctx.fill();
+  }
+  dctx.restore();
+
+  dctx.restore(); // main translate
+}
+
+function animateDragon() {
+  t += 0.04;
+  drawDragon(t);
+  requestAnimationFrame(animateDragon);
+}
+animateDragon();
+</script>
+</body>
+</html>

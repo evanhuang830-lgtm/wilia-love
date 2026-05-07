@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I love you Wilia</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #fff;
+    min-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .center {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    animation: floatin 1s ease both;
+  }
+  @keyframes floatin {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .main-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(48px, 9vw, 100px);
+    font-weight: 700;
+    color: #e0255a;
+    animation: pulse 2.2s ease-in-out infinite;
+    letter-spacing: 2px;
+  }
+  .name {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(32px, 6vw, 68px);
+    font-weight: 700;
+    color: #ff4d7a;
+    animation: pulse 2.2s ease-in-out infinite;
+    letter-spacing: 3px;
+  }
+  .sub-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(16px, 2.5vw, 24px);
+    color: #c0607a;
+    letter-spacing: 3px;
+    opacity: 0;
+    animation: fadein 2s 1s forwards;
+  }
+  @keyframes pulse {
+    0%, 100% { color: #e0255a; }
+    50% { color: #ff4d7a; }
+  }
+  @keyframes fadein { to { opacity: 1; } }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.18); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    56% { transform: scale(1); }
+  }
+  .heart-svg { animation: heartbeat 1.2s ease-in-out infinite; display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="center">
+  <svg class="heart-svg" width="110" height="100" viewBox="0 0 110 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="hg" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#ff6090"/>
+        <stop offset="100%" stop-color="#c0003a"/>
+      </radialGradient>
+    </defs>
+    <path d="M55 90 C55 90 5 55 5 28 C5 12 17 2 30 2 C40 2 50 9 55 18 C60 9 70 2 80 2 C93 2 105 12 105 28 C105 55 55 90 55 90Z" fill="url(#hg)" stroke="#e0255a" stroke-width="1.5"/>
+  </svg>
+  <div class="main-text">I love you</div>
+  <div class="name">Wilia</div>
+  <div class="sub-text">c'est moi, je t'aime plus</div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+const hearts = [];
+function randBetween(a, b) { return a + Math.random() * (b - a); }
+function drawHeart(ctx, cx, cy, size, alpha, color) {
+  const s = size / 110;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(cx - 55 * s, cy - 50 * s);
+  ctx.scale(s, s);
+  ctx.beginPath();
+  ctx.moveTo(55, 90);
+  ctx.bezierCurveTo(55, 90, 5, 55, 5, 28);
+  ctx.bezierCurveTo(5, 12, 17, 2, 30, 2);
+  ctx.bezierCurveTo(40, 2, 50, 9, 55, 18);
+  ctx.bezierCurveTo(60, 9, 70, 2, 80, 2);
+  ctx.bezierCurveTo(93, 2, 105, 12, 105, 28);
+  ctx.bezierCurveTo(105, 55, 55, 90, 55, 90);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+const colors = ['#ff6090','#ff4d7a','#e0255a','#ffb3cc','#ff8fb0','#ffd6e5','#c0003a','#ffcce0'];
+function spawnHeart() {
+  const size = randBetween(14, 44);
+  hearts.push({
+    x: randBetween(0, canvas.width), y: canvas.height + size, size,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: randBetween(-1, 1), vy: randBetween(-1.4, -3),
+    alpha: randBetween(0.5, 0.9),
+    wobble: randBetween(0, Math.PI * 2), wobbleSpeed: randBetween(0.02, 0.05), wobbleAmp: randBetween(0.5, 1.8),
+    fade: randBetween(0.003, 0.006),
+  });
+}
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const h = hearts[i];
+    h.y += h.vy; h.x += h.vx + Math.sin(h.wobble) * h.wobbleAmp;
+    h.wobble += h.wobbleSpeed; h.alpha -= h.fade;
+    if (h.alpha <= 0 || h.y < -h.size * 2) { hearts.splice(i, 1); continue; }
+    drawHeart(ctx, h.x, h.y, h.size, h.alpha, h.color);
+  }
+  if (Math.random() < 0.28) spawnHeart();
+  requestAnimationFrame(draw);
+}
+draw();
+for (let k = 0; k < 22; k++) setTimeout(spawnHeart, k * 80);
+</script>
+</body>
+</html>
